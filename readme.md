@@ -1,58 +1,204 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+# Laravel Resource
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+```shell
+root@7b2446435c82:/var/www/laravel-resource# php artisan make:model Product -cm
+Model created successfully.
+Created Migration: 2018_08_30_070408_create_products_table
+Controller created successfully.
+root@7b2446435c82:/var/www/laravel-resource#
+root@7b2446435c82:/var/www/laravel-resource# php artisan migrate
+Migration table created successfully.
+Migrating: 2014_10_12_000000_create_users_table
+Migrated:  2014_10_12_000000_create_users_table
+Migrating: 2014_10_12_100000_create_password_resets_table
+Migrated:  2014_10_12_100000_create_password_resets_table
+Migrating: 2018_08_30_070408_create_products_table
+Migrated:  2018_08_30_070408_create_products_table
+root@7b2446435c82:/var/www/laravel-resource#
+```
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+```shell
+root@7b2446435c82:/var/www/laravel-resource# php artisan make:resource Product
+Resource created successfully.
+root@7b2446435c82:/var/www/laravel-resource#
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications.
+```shell
+root@7b2446435c82:/var/www/laravel-resource# php artisan make:seeder ProductSeeder
+Seeder created successfully.
+root@7b2446435c82:/var/www/laravel-resource#
+```
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of any modern web application framework, making it a breeze to get started learning the framework.
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 1100 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+`/Users/qiuyu/code/laravel-resource/database/factories/ProductFactory.php`
 
-## Laravel Sponsors
+```php
+<?php
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell):
+use Faker\Generator as Faker;
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Pulse Storm](http://www.pulsestorm.net/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
+/*
+|--------------------------------------------------------------------------
+| Model Factories
+|--------------------------------------------------------------------------
+|
+| This directory should contain each of the model factory definitions for
+| your application. Factories provide a convenient way to generate new
+| model instances for testing / seeding your application's database.
+|
+*/
 
-## Contributing
+$factory->define(App\Product::class, function (Faker $faker) {
+    return [
+        'name' => $faker->name,
+        'price' => $faker->randomNumber(),
+    ];
+});
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```
 
-## Security Vulnerabilities
+`/Users/qiuyu/code/laravel-resource/database/seeds/ProductSeeder.php`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```php
+<?php
 
-## License
+use Illuminate\Database\Seeder;
+use App\Product;
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+class ProductSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        factory(Product::class, 10)->create();
+    }
+}
+
+```
+
+
+```shell
+root@7b2446435c82:/var/www/laravel-resource# php artisan db:seed --class=ProductSeeder
+root@7b2446435c82:/var/www/laravel-resource#
+```
+
+![image-20180830151536650](assets/image-20180830151536650.png)
+
+
+`/Users/qiuyu/code/laravel-resource/app/Http/Controllers/ProductController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Http\Resources\Product as ProductResource;
+use App\Product;
+
+/**
+ * Class ProductController
+ * @package App\Http\Controllers
+ */
+class ProductController extends Controller
+{
+    protected $product;
+
+    /**
+     * ProductController constructor.
+     * @param Product $product
+     */
+    public function __construct(Product $product)
+    {
+        $this->product = $product;
+    }
+
+    public function show($id)
+    {
+        return new ProductResource($this->product->find($id));
+    }
+}
+```
+
+`/Users/qiuyu/code/laravel-resource/app/Http/Resources/Product.php`
+
+```php
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\Resource;
+
+class Product extends Resource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        // return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'price' => $this->price,
+            'test' => 'This is a test',
+            'created_at' => (string)$this->created_at,
+            'updated_at' => (string)$this->updated_at,
+        ];
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return array
+     */
+    public function with($request)
+    {
+        return [
+            'links' => [
+                'self' => url('api/products/' . $this->id),
+            ]
+        ];
+    }
+}
+
+```
+
+
+`/Users/qiuyu/code/laravel-resource/routes/api.php`
+
+```php
+<?php
+
+use Illuminate\Http\Request;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::get('/products/{id}', 'ProductController@show');
+
+```
+
+![image-20180830155243336](assets/image-20180830155243336.png)
+
